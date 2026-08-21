@@ -1,0 +1,62 @@
+# yatr - https://github.com/cargopete/yatr
+#
+# Task names are the same across every nightswatchhq repo, so `yatr ci` means
+# the same thing wherever you are. Note that `ci` is deliberately not called
+# `check`: `yatr check` is a builtin that validates this file, and it shadows
+# any task of that name without warning.
+
+# Foundry lives here; these tasks need forge on PATH (foundryup).
+
+[settings]
+cache = true
+
+[tasks.fmt]
+desc = "Format the Solidity sources"
+run = ["forge fmt"]
+
+no_cache = true
+
+[tasks.fmt-check]
+desc = "Fail if the Solidity is unformatted"
+run = ["forge fmt --check"]
+
+sources = ["**/*.sol"]
+
+# NOTE: this repo commits remappings.txt pointing into lib/, but neither lib/
+# nor .gitmodules is committed, so a fresh clone cannot compile until the
+# dependencies are fetched. `yatr deps` does that; the versions are whatever is
+# on the default branch, because nothing here pins them.
+
+[tasks.deps]
+desc = "Fetch the Solidity dependencies that remappings.txt expects in lib/"
+run = [
+    "forge install foundry-rs/forge-std --no-git",
+    "forge install OpenZeppelin/openzeppelin-contracts --no-git",
+    "forge install OpenZeppelin/openzeppelin-contracts-upgradeable --no-git",
+    "forge install graphprotocol/contracts --no-git",
+]
+no_cache = true
+
+[tasks.build]
+desc = "Compile the contracts"
+run = ["forge build"]
+
+sources = ["**/*.sol", "foundry.toml", "remappings.txt"]
+
+[tasks.test]
+desc = "Run the Forge test suite"
+run = ["forge test"]
+
+sources = ["**/*.sol", "foundry.toml"]
+watch = ["**/*.sol"]
+
+[tasks.gas]
+desc = "Test with a gas report"
+run = ["forge test --gas-report"]
+
+no_cache = true
+
+[tasks.ci]
+desc = "What CI runs: fmt-check, build, test"
+depends = ["fmt-check", "build", "test"]
+run = []
